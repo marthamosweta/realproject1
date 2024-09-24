@@ -1,0 +1,290 @@
+We start by installing the necessary applications to clean our data and install the wordclouds
+
+pip install pandas wordcloud matplotlib nltk
+
+Requirement already satisfied: pandas in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (2.0.3)
+Requirement already satisfied: wordcloud in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (1.9.3)
+Requirement already satisfied: matplotlib in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (3.7.2)
+Requirement already satisfied: nltk in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (3.8.1)
+Requirement already satisfied: python-dateutil>=2.8.2 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from pandas) (2.8.2)
+Requirement already satisfied: pytz>=2020.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from pandas) (2023.3.post1)
+Requirement already satisfied: tzdata>=2022.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from pandas) (2023.3)
+Requirement already satisfied: numpy>=1.21.0 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from pandas) (1.24.3)
+Requirement already satisfied: pillow in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from wordcloud) (9.4.0)
+Requirement already satisfied: contourpy>=1.0.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (1.0.5)
+Requirement already satisfied: cycler>=0.10 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (0.11.0)
+Requirement already satisfied: fonttools>=4.22.0 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (4.25.0)
+Requirement already satisfied: kiwisolver>=1.0.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (1.4.4)
+Requirement already satisfied: packaging>=20.0 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (23.1)
+Requirement already satisfied: pyparsing<3.1,>=2.3.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from matplotlib) (3.0.9)
+Requirement already satisfied: click in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from nltk) (8.0.4)
+Requirement already satisfied: joblib in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from nltk) (1.2.0)
+Requirement already satisfied: regex>=2021.8.3 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from nltk) (2022.7.9)
+Requirement already satisfied: tqdm in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from nltk) (4.65.0)
+Requirement already satisfied: six>=1.5 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from python-dateutil>=2.8.2->pandas) (1.16.0)
+Note: you may need to restart the kernel to use updated packages.
+
+import pandas as pd
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import re
+import os
+import glob
+import nltk
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
+[nltk_data] Downloading package stopwords to
+[nltk_data]     /Users/marthamosweta/nltk_data...
+[nltk_data]   Package stopwords is already up-to-date!
+[nltk_data] Downloading package punkt to
+[nltk_data]     /Users/marthamosweta/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+True
+
+csv_directory = '/Users/marthamosweta/Downloads/tweets_until_20240718_with_sentiment.csv'  
+csv_files = glob.glob(os.path.join(csv_directory, '*.csv'))
+
+
+df_list = [pd.read_csv(file) for file in csv_files]
+df = pd.concat(df_list, ignore_index=True)
+
+
+print(df.columns)
+
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/2098753148.py:5: DtypeWarning: Columns (9) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file) for file in csv_files]
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/2098753148.py:5: DtypeWarning: Columns (10,11,12) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file) for file in csv_files]
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/2098753148.py:5: DtypeWarning: Columns (8,11,12) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file) for file in csv_files]
+Index(['id', 'created_at', 'tweet_text', 'tweet_url', 'analyser_name',
+       'analysis_result', 'analysed_form', 'gpt35_sentiment_analyser',
+       'gpt35_sentiment_happiness', 'gpt35_sentiment_sadness',
+       'gpt35_sentiment_disgust', 'gpt35_sentiment_fear',
+       'gpt35_sentiment_anger', 'nrclex_sentiment_analyser',
+       'nrclex_sentiment_joy', 'nrclex_sentiment_sadness',
+       'nrclex_sentiment_disgust', 'nrclex_sentiment_fear',
+       'nrclex_sentiment_anger', 'nrclex_sentiment_trust',
+       'nrclex_sentiment_surprise'],
+      dtype='object')
+
+def clean_text(text):
+    
+    text = re.sub(r'http\S+', '', text)
+   
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    
+    text = text.lower()
+   
+    words = word_tokenize(text)
+  
+    words = [word for word in words if word not in stopwords.words('english')]
+    return ' '.join(words)
+
+
+df['cleaned_text'] = df['tweet_text'].apply(clean_text)
+
+import pandas as pd
+import re
+import os
+import glob
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import nltk
+
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
+
+def clean_text_optimized(text):
+    
+    text = re.sub(r'http\S+|[^a-zA-Z\s]', '', text)
+    
+    text = text.lower()
+   
+    words = word_tokenize(text)
+    
+    stop_words = set(stopwords.words('english'))
+    words = [word for word in words if word not in stop_words]
+    return ' '.join(words)
+
+
+import pandas as pd
+
+
+csv_file_paths = [
+    'tweets_until_20240718_with_sentiment.1.csv',
+    'tweets_until_20240718_with_sentiment.2.csv',
+    'tweets_until_20240718_with_sentiment.3.csv'
+]
+
+
+df_list = [pd.read_csv(file_path) for file_path in csv_file_paths]
+df = pd.concat(df_list, ignore_index=True)
+
+
+
+
+df['cleaned_text'] = df['tweet_text'].map(clean_text_optimized)
+
+
+print(df.head())
+
+[nltk_data] Downloading package stopwords to
+[nltk_data]     /Users/marthamosweta/nltk_data...
+[nltk_data]   Package stopwords is already up-to-date!
+[nltk_data] Downloading package punkt to
+[nltk_data]     /Users/marthamosweta/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/1812194852.py:37: DtypeWarning: Columns (8,11,12) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file_path) for file_path in csv_file_paths]
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/1812194852.py:37: DtypeWarning: Columns (9) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file_path) for file_path in csv_file_paths]
+/var/folders/cb/pl3vq81s7rn3pwtgr8p1hxz00000gn/T/ipykernel_8558/1812194852.py:37: DtypeWarning: Columns (10,11,12) have mixed types. Specify dtype option on import or set low_memory=False.
+  df_list = [pd.read_csv(file_path) for file_path in csv_file_paths]
+                    id           created_at  \
+0  1813521502916210859  2024-07-17 13:29:54   
+1  1813521492283650557  2024-07-17 13:29:52   
+2  1813521490178146545  2024-07-17 13:29:51   
+3  1813521472104894832  2024-07-17 13:29:47   
+4  1813521471622549686  2024-07-17 13:29:47   
+
+                                          tweet_text  \
+0  @MkenyaMzi This was posted by Reuters.    #Rut...   
+1                              @MKapombe #RutoMustGo   
+2  @mwabilimwagodi I Second, kama mbaya, mbaya!  ...   
+3                #RutoMustGo https://t.co/qkTV5m5Xi5   
+4  @CapitalFMKenya Which Kenyans? Why are you spr...   
+
+                                           tweet_url        analyser_name  \
+0  https://twitter.com/1580508960573964288/status...  form_classification   
+1  https://twitter.com/1696235650905722880/status...  form_classification   
+2  https://twitter.com/1801145215341707264/status...  form_classification   
+3  https://twitter.com/1235825772297781248/status...  form_classification   
+4  https://twitter.com/1251549473722990592/status...  form_classification   
+
+                analysis_result    analysed_form  \
+0  {"label": "Irrelevant Post"}  Irrelevant Post   
+1  {"label": "Irrelevant Post"}  Irrelevant Post   
+2  {"label": "Irrelevant Post"}  Irrelevant Post   
+3  {"label": "Irrelevant Post"}  Irrelevant Post   
+4  {"label": "Irrelevant Post"}  Irrelevant Post   
+
+                            gpt35_sentiment_analyser  \
+0  {"meta": {"model": "gpt-3.5-turbo", "model_ven...   
+1  {"meta": {"model": "gpt-3.5-turbo", "model_ven...   
+2  {"meta": {"model": "gpt-3.5-turbo", "model_ven...   
+3  {"meta": {"model": "gpt-3.5-turbo", "model_ven...   
+4  {"meta": {"model": "gpt-3.5-turbo", "model_ven...   
+
+  gpt35_sentiment_happiness gpt35_sentiment_sadness  ...  \
+0                       0.1                     0.4  ...   
+1                       0.0                     0.8  ...   
+2                       0.1                     0.6  ...   
+3                       0.0                     0.8  ...   
+4                       0.1                     0.4  ...   
+
+  gpt35_sentiment_anger                          nrclex_sentiment_analyser  \
+0                   0.7  {"name": "sentiment-nrclex", "project": "ushah...   
+1                   0.9  {"name": "sentiment-nrclex", "project": "ushah...   
+2                   0.9  {"name": "sentiment-nrclex", "project": "ushah...   
+3                   0.9  {"name": "sentiment-nrclex", "project": "ushah...   
+4                   0.7  {"name": "sentiment-nrclex", "project": "ushah...   
+
+  nrclex_sentiment_joy nrclex_sentiment_sadness  nrclex_sentiment_disgust  \
+0                  0.0                      0.0                       0.0   
+1                  0.0                      0.0                       0.0   
+2                  0.0                      0.0                       0.0   
+3                  0.0                      0.0                       0.0   
+4                  0.0                      0.0                       0.0   
+
+   nrclex_sentiment_fear  nrclex_sentiment_anger  nrclex_sentiment_trust  \
+0                    0.0                     0.0                     0.0   
+1                    0.0                     0.0                     0.0   
+2                    0.0                     0.0                     0.0   
+3                    0.0                     0.0                     0.0   
+4                    0.0                     0.0                     0.0   
+
+   nrclex_sentiment_surprise  \
+0                        0.0   
+1                        0.0   
+2                        0.0   
+3                        0.0   
+4                        0.0   
+
+                                        cleaned_text  
+0                mkenyamzi posted reuters rutomustgo  
+1                                mkapombe rutomustgo  
+2  mwabilimwagodi second kama mbaya mbaya rutomustgo  
+3                                         rutomustgo  
+4  capitalfmkenya kenyans spreading misinformatio...  
+
+[5 rows x 22 columns]
+
+​
+topics = {
+    'stalled_projects': ['stalled', 'project', 'delayed', 'construction'],
+    'issuance_of_ids': ['id', 'identity', 'card', 'issuance', 'passport'],
+    'mining_minerals': ['mining', 'minerals', 'mine', 'extraction', 'resource'],
+    'proposed_new_cabinet': ['cabinet', 'minister', 'nominee', 'proposed', 'new', 'corruption', 'civic education', '2027', 'education'],  # Added comma here
+    'police_brutality': ['police', 'brutality', 'violence', 'force', 'abuse', 'misconduct'],
+    'missing_persons': ['missing', 'person', 'disappearance', 'search', 'found', 'abducted']
+}
+​
+topic_text = {
+    key: ' '.join(df[df['cleaned_text'].str.contains('|'.join(words), na=False)]['cleaned_text']) 
+    for key, words in topics.items()
+}
+​
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
+import re
+
+
+custom_stopwords = set(STOPWORDS)
+custom_stopwords.update({
+    'rutomust go', 'famineinnorthgaza', 'cabinet', 'officer', 'nairobi', 'education', 'avenue', 'sabasabamarchforourlives', 'polokimanii', 'isrealisisis', 'make', 'angukanayo', 'freepalestine', 'fight', 'looting', 'lootingpublic''government', 'specific', 'rutomustgonow', 'kids', 'house', 'israelterroristsorganisation', 'gaza', 'gazagenocide', 'gazastarving', 'rutomustresignnow', 'cnyakundih', 'kremlinrussiae', 'stop', 'thats', 'tell', 'thing', 'happy',  'words', 'to', 'exclude', 'rutomustgo', 'government', 'slpoolskenya', 'clients', 'jomoko', 'israeliwarcrimes', 'believe', 'protests', 'ruto', 'yamal', 'occupymoh', 'call', 'ksh', 'kiuna', 'see', 'knew', 'spain', 'raila', 'bluetooth', 'tips', 'guys', 'kicc', 'occupycle', 'live', 'cant', 'bishop', 'occupyparliament', 'shop', '_', 'president', 'people', 'go', 'billion', 'kenya', 'project', 'know', 'cost', 'must go', 'kimuzi', 'kill us', 'lie', 'fucking', 'projects', 'williamsruto', 'money', 'need', 'ni', 'corruption', 'said', 'kenyan', 'gidikariuki', 'amp', 'way', 'maim', 'breaking', 'grab', 'lead', 'us', 'kill', 'new', 'calling', 'kenyans', 'githurai', 'bozgabi', 'goog', 'google', 'tsla', 'tesla', 'spy', 'splatoon', 'nflx', 'netflix', 'maandamano', 'knees', 'one', 'country', 'even', 'let', 'character', 'wantna', 'must', 'dont', 'boniface mwangi', 'determined', 'genz', 'tuesday', 'evidence', 'massacre', 'retweet', 'still', 'freepolokimani', 'gme', 'amc', 'francisontomwa', 'govt', 'police', 'news', 'projecting', 'polo kimanii', 'meta', 'draintheswamp', 'masdaq', 'amzn', 'nasdaqlobo', 'want', 'widely', 'itumbidenis', 'stupid', 'never', 'ya', 'aapl', 'done', 'county', 'shopgamestop', 'lfa', 'say', 'time', 'today', 'guy', 'timesrtnews', 'russembkenya', 'ajenglish', 'junction', 'reject', 'rejectfinancebill', 'finance', 'bill', 'kalsi', 'kalsi house', 'projector', 'project', 'sturgis', 'android', 'luxury', 'limited', 'prices', 'visit', 'engagethepresident', 'thika', 'thika', 'work', 'street', 'mfangano', 'black', 'offer', 'limited', 'na', 'gen z', 'william', 'fuck', 'allan', 'allankiuna', 'contact', 'lamine yamal', 'gen', 'z','arrest', 'arrestfarahmaalim', 'luthuli', 'occupy', 'occupycbd', 'occupycbdtuesday', 'x', 'protest', 'davidndii', 'lamine'
+    
+})
+
+def preprocess_text(text):
+   
+    text = text.lower()
+  
+    text = re.sub(r'[\d\s\W]+', ' ', text)
+  
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+def create_word_cloud(text, title, stopwords=None):
+    
+    text = preprocess_text(text)
+    
+   
+    wordcloud = WordCloud(
+        width=800, 
+        height=400, 
+        background_color='white', 
+        stopwords=stopwords, 
+        max_words=35, 
+        min_word_length=6
+    
+    ).generate(text)
+    
+   
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')
+    plt.title(title)
+    plt.show()
+
+
+for topic, text in topic_text.items():
+    create_word_cloud(text, f"Word Cloud for {topic.replace('_', ' ').title()}", custom_stopwords)
+
+
