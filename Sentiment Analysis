@@ -1,0 +1,156 @@
+pip install transformers torch
+
+Requirement already satisfied: transformers in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (4.32.1)
+Collecting torch
+  Obtaining dependency information for torch from https://files.pythonhosted.org/packages/1f/34/c93873c37f93154d982172755f7e504fdbae6c760499303a3111ce6ce327/torch-2.4.1-cp311-none-macosx_11_0_arm64.whl.metadata
+  Downloading torch-2.4.1-cp311-none-macosx_11_0_arm64.whl.metadata (26 kB)
+Requirement already satisfied: filelock in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (3.9.0)
+Requirement already satisfied: huggingface-hub<1.0,>=0.15.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (0.15.1)
+Requirement already satisfied: numpy>=1.17 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (1.24.3)
+Requirement already satisfied: packaging>=20.0 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (23.1)
+Requirement already satisfied: pyyaml>=5.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (6.0)
+Requirement already satisfied: regex!=2019.12.17 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (2022.7.9)
+Requirement already satisfied: requests in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (2.31.0)
+Requirement already satisfied: tokenizers!=0.11.3,<0.14,>=0.11.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (0.13.2)
+Requirement already satisfied: safetensors>=0.3.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (0.3.2)
+Requirement already satisfied: tqdm>=4.27 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from transformers) (4.65.0)
+Collecting typing-extensions>=4.8.0 (from torch)
+  Obtaining dependency information for typing-extensions>=4.8.0 from https://files.pythonhosted.org/packages/26/9f/ad63fc0248c5379346306f8668cda6e2e2e9c95e01216d2b8ffd9ff037d0/typing_extensions-4.12.2-py3-none-any.whl.metadata
+  Downloading typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)
+Requirement already satisfied: sympy in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from torch) (1.11.1)
+Requirement already satisfied: networkx in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from torch) (3.1)
+Requirement already satisfied: jinja2 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from torch) (3.1.2)
+Requirement already satisfied: fsspec in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from torch) (2023.4.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from jinja2->torch) (2.1.1)
+Requirement already satisfied: charset-normalizer<4,>=2 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from requests->transformers) (2.0.4)
+Requirement already satisfied: idna<4,>=2.5 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from requests->transformers) (3.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from requests->transformers) (1.26.16)
+Requirement already satisfied: certifi>=2017.4.17 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from requests->transformers) (2023.7.22)
+Requirement already satisfied: mpmath>=0.19 in /Users/marthamosweta/anaconda3/lib/python3.11/site-packages (from sympy->torch) (1.3.0)
+Downloading torch-2.4.1-cp311-none-macosx_11_0_arm64.whl (62.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 MB 989.4 kB/s eta 0:00:00:010m:020m
+Downloading typing_extensions-4.12.2-py3-none-any.whl (37 kB)
+Installing collected packages: typing-extensions, torch
+  Attempting uninstall: typing-extensions
+    Found existing installation: typing_extensions 4.7.1
+    Uninstalling typing_extensions-4.7.1:
+      Successfully uninstalled typing_extensions-4.7.1
+Successfully installed torch-2.4.1 typing-extensions-4.12.2
+Note: you may need to restart the kernel to use updated packages.
+
+from transformers import pipeline
+import pandas as pd
+
+
+classifier = pipeline('text-classification', model='j-hartmann/emotion-english-distilroberta-base', return_all_scores=True)
+
+
+topics = {
+    'stalled_projects': 'The stalled project has caused delays and frustration among people. The construction is yet to be resumed.',
+    'issuance_of_ids': 'The issuance of identity cards is moving slowly, and people are unhappy with the passport office.',
+    'mining_minerals': 'Mining minerals has brought wealth but also environmental concerns and public dissatisfaction.',
+    'proposed_new_cabinet': 'The proposed new cabinet is facing criticism, and there are allegations of corruption.',
+    'police_brutality': 'Police brutality has sparked protests due to violence, abuse, and misconduct.',
+    'missing_persons': 'The search for missing persons continues, with families living in fear and anxiety.'
+}
+
+
+def get_emotion_scores(text):
+    scores = classifier(text)
+    
+    emotion_dict = {score['label']: score['score'] for score in scores[0]}
+    return emotion_dict
+
+
+emotion_results = []
+
+for topic, text in topics.items():
+    emotions = get_emotion_scores(text)
+    emotion_results.append({'Topic': topic, **emotions})
+
+
+emotion_df = pd.DataFrame(emotion_results)
+
+
+print(emotion_df)
+
+/Users/marthamosweta/anaconda3/lib/python3.11/site-packages/transformers/utils/generic.py:260: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  torch.utils._pytree._register_pytree_node(
+Error displaying widget: model not found
+Error displaying widget: model not found
+/Users/marthamosweta/anaconda3/lib/python3.11/site-packages/transformers/modeling_utils.py:479: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Error displaying widget: model not found
+Error displaying widget: model not found
+Error displaying widget: model not found
+Error displaying widget: model not found
+Error displaying widget: model not found
+                  Topic     anger   disgust      fear       joy   neutral  \
+0      stalled_projects  0.824122  0.023071  0.004849  0.001631  0.067353   
+1       issuance_of_ids  0.238664  0.100063  0.009478  0.006509  0.158772   
+2       mining_minerals  0.574966  0.141749  0.002146  0.020897  0.212758   
+3  proposed_new_cabinet  0.452594  0.434346  0.012014  0.001279  0.052868   
+4      police_brutality  0.283717  0.667996  0.018527  0.000562  0.011267   
+5       missing_persons  0.001877  0.001304  0.981296  0.001055  0.009077   
+
+    sadness  surprise  
+0  0.074117  0.004857  
+1  0.482126  0.004387  
+2  0.044569  0.002916  
+3  0.044664  0.002235  
+4  0.016721  0.001211  
+5  0.003954  0.001436  
+/Users/marthamosweta/anaconda3/lib/python3.11/site-packages/transformers/pipelines/text_classification.py:105: UserWarning: `return_all_scores` is now deprecated,  if want a similar functionality use `top_k=None` instead of `return_all_scores=True` or `top_k=1` instead of `return_all_scores=False`.
+  warnings.warn(
+
+def plot_emotion_bar_graph(topic, emotions):
+    emotions_list = list(emotions.keys())
+    scores_list = list(emotions.values())
+    
+    
+    plt.figure(figsize=(10, 5))
+    plt.bar(emotions_list, scores_list, color=['red', 'blue', 'green', 'purple', 'yellow'])
+    plt.xlabel('Emotions')
+    plt.ylabel('Sentiment Score')
+    plt.title(f'Sentiment Analysis for {topic.replace("_", " ").title()}')
+    plt.show()
+
+
+plot_emotion_bar_graph('police_brutality', emotion_df[emotion_df['Topic'] == 'police_brutality'].iloc[0].to_dict())
+
+NameError                                 Traceback (most recent call last)
+Cell In[3], line 14
+     10     plt.title(f'Sentiment Analysis for {topic.replace("_", " ").title()}')
+     11     plt.show()
+---> 14 plot_emotion_bar_graph('police_brutality', emotion_df[emotion_df['Topic'] == 'police_brutality'].iloc[0].to_dict())
+
+Cell In[3], line 6, in plot_emotion_bar_graph(topic, emotions)
+      2 emotions_list = list(emotions.keys())
+      3 scores_list = list(emotions.values())
+----> 6 plt.figure(figsize=(10, 5))
+      7 plt.bar(emotions_list, scores_list, color=['red', 'blue', 'green', 'purple', 'yellow'])
+      8 plt.xlabel('Emotions')
+
+NameError: name 'plt' is not defined
+
+import matplotlib.pyplot as plt
+
+def plot_emotion_bar_graph(topic, emotions):
+   
+    emotions.pop('Topic', None)
+
+   
+    emotions_list = list(emotions.keys())
+    scores_list = list(emotions.values())
+    
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(emotions_list, scores_list, color=['red', 'blue', 'green', 'purple', 'yellow'])
+    plt.xlabel('Emotions')
+    plt.ylabel('Sentiment Score')
+    plt.title(f'Sentiment Analysis for {topic.replace("_", " ").title()}')
+    plt.show()
+
+
+police_emotions = emotion_df[emotion_df['Topic'] == 'police_brutality'].iloc[0].to_dict()
+plot_emotion_bar_graph('police_brutality', police_emotions)
