@@ -1,0 +1,36 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+df1 = pd.read_csv('tweets_until_20240718_with_sentiment.1.csv')
+df2 = pd.read_csv('tweets_until_20240718_with_sentiment.2.csv')
+df3 = pd.read_csv('tweets_until_20240718_with_sentiment.3.csv')
+
+
+df = pd.concat([df1, df2, df3])
+
+
+df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
+
+
+hashtag_filter = df['tweet_text'].str.contains('#stoppolicebrutality', case=False, na=False)
+df_hashtag = df[hashtag_filter]
+
+
+df_july = df_hashtag[(df_hashtag['created_at'] >= '2024-07-01') & (df_hashtag['created_at'] <= '2024-07-31')]
+
+
+df_july.set_index('created_at', inplace=True)
+
+
+tweet_counts_july = df_july.resample('D').size()  
+
+
+plt.figure(figsize=(10,6))
+plt.plot(tweet_counts_july, color='b', marker='o')
+plt.title('Usage of #stoppolicebrutality Over July 2024')
+plt.xlabel('Date')
+plt.ylabel('Number of Tweets')
+plt.grid(True)
+plt.show()
+
